@@ -93,7 +93,7 @@ async function carregarPedidos() {
     lista.innerHTML = "<p style='text-align:center;color:#666;'>Carregando pedidos...</p>";
 
     try {
-        const resp = await fetch('/pedidos');
+        const resp = await fetch('/api/pedidos');
         const pedidos = await resp.json();
 
         if (!pedidos || pedidos.length === 0) {
