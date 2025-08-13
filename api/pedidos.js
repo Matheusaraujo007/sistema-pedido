@@ -29,3 +29,15 @@ export default async function handler(req, res) {
     res.status(500).json({ erro: err.message });
   }
 }
+
+
+
+export default async function handler(req, res) {
+  if (req.method === 'POST') {
+    // salva pedido
+  } else if (req.method === 'GET') {
+    // retorna todos os pedidos
+  } else {
+    res.status(405).json({ erro: 'Método não permitido' });
+  }
+}
