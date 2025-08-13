@@ -77,24 +77,32 @@
 <div id="listaPedidos"></div>
 <a href="index.html" class="voltar">⬅ Voltar</a>
 
+<!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.2/dist/supabase.min.js"></script>
 <script>
-const supabaseUrl = "YOUR_SUPABASE_URL";       // ← coloque sua URL do Supabase
-const supabaseKey = "YOUR_SUPABASE_ANON_KEY"; // ← coloque sua ANON KEY
+// Inicialização do Supabase
+const supabaseUrl = "https://jeddjulucawhwxtocnqy.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGRqdWx1Y2F3aHd4dG9jbnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwOTA4MDIsImV4cCI6MjA3MDY2NjgwMn0.AmHHBMpM4Fy0D021wdgWAEEn50rlYqVJa491qJ7mBbc";
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 const lista = document.getElementById("listaPedidos");
 
+// Formata data para DD/MM/AAAA
 function formatarDataBR(dataISO) {
     if (!dataISO) return "";
     const [ano, mes, dia] = dataISO.split("-");
     return `${dia}/${mes}/${ano}`;
 }
 
+// Função para carregar pedidos
 async function carregarPedidos() {
     lista.innerHTML = "<p style='text-align:center;color:#666;'>Carregando pedidos...</p>";
 
-    const { data: pedidos, error } = await supabase.from("pedidos").select("*").order('dataPedido', { ascending: false });
+    // Buscar pedidos do Supabase
+    const { data: pedidos, error } = await supabase
+        .from("pedidos")
+        .select("*")
+        .order('data_pedido', { ascending: false });
 
     if (error) {
         lista.innerHTML = `<p style='text-align:center;color:red;'>Erro ao carregar pedidos: ${error.message}</p>`;
@@ -112,34 +120,39 @@ async function carregarPedidos() {
         const card = document.createElement("div");
         card.classList.add("pedido-card");
 
+        // Classe do status
         let statusClasse = "pendente";
-        if (pedido.status.toLowerCase().includes("arte")) statusClasse = "aprovada";
-        else if (pedido.status.toLowerCase().includes("finalizado")) statusClasse = "finalizado";
-        else if (pedido.status.toLowerCase().includes("cancelado")) statusClasse = "cancelado";
+        const statusLower = (pedido.status || "").toLowerCase();
+        if (statusLower.includes("arte") || statusLower.includes("aprovada")) statusClasse = "aprovada";
+        else if (statusLower.includes("finalizado")) statusClasse = "finalizado";
+        else if (statusLower.includes("cancelado")) statusClasse = "cancelado";
 
+        // Itens do pedido (deserializando JSON)
         let produtosHTML = "<ul>";
         if (pedido.itens) {
-            pedido.itens.forEach(item => {
-                produtosHTML += `<li>${item.produto} - ${item.quantidade} un. (R$ ${item.valorUnit.toFixed(2)}) - Total: R$ ${(item.total).toFixed(2)}</li>`;
+            let itensArray = [];
+            try { itensArray = JSON.parse(pedido.itens); } catch(e) { itensArray = []; }
+            itensArray.forEach(item => {
+                produtosHTML += `<li>${item.produto} - ${item.quantidade} un. (R$ ${item.valorUnit.toFixed(2)}) - Total: R$ ${item.total.toFixed(2)}</li>`;
             });
         }
         produtosHTML += "</ul>";
 
-        const valorRecebido = pedido.valorRecebido || 0;
+        const valorRecebido = pedido.valor_recebido || 0;
 
         card.innerHTML = `
             <div class="pedido-header">
-                <span>📋 Pedido de ${pedido.seuNome}</span>
+                <span>📋 Pedido de ${pedido.vendedor}</span>
                 <span class="status ${statusClasse}">${pedido.status || "Aguardando Retorno"}</span>
             </div>
             <div class="pedido-info">
-                <p><b>Cliente:</b> ${pedido.nomeCliente}</p>
-                <p><b>Telefone:</b> ${pedido.telefoneCliente}</p>
+                <p><b>Cliente:</b> ${pedido.nome_cliente}</p>
+                <p><b>Telefone:</b> ${pedido.telefone_cliente}</p>
                 <p><b>Produtos:</b> ${produtosHTML}</p>
-                <p><b>Valor Total do Pedido:</b> R$ ${pedido.valorTotal.toFixed(2)}</p>
+                <p><b>Valor Total do Pedido:</b> R$ ${pedido.valor_total.toFixed(2)}</p>
                 <p><b>Valor Recebido:</b> R$ ${valorRecebido.toFixed(2)}</p>
-                <p><b>Data Pedido:</b> ${pedido.dataPedido}</p>
-                <p><b>Data Entrega:</b> ${formatarDataBR(pedido.dataEntrega)}</p>
+                <p><b>Data Pedido:</b> ${formatarDataBR(pedido.data_pedido)}</p>
+                <p><b>Data Entrega:</b> ${formatarDataBR(pedido.data_entrega)}</p>
             </div>
         `;
         lista.appendChild(card);
