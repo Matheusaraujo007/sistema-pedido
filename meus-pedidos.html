@@ -100,7 +100,9 @@ async function carregarPedidos() {
   lista.innerHTML = "<p style='text-align:center;color:red;'>Erro: retorno não é um array</p>";
   return;
 }
-
+        pedidos.forEach(pedido => {
+  // renderiza os pedidos
+  });
         if (!pedidos || pedidos.length === 0) {
             lista.innerHTML = "<p style='text-align:center;color:#666;'>Nenhum pedido encontrado.</p>";
             return;
