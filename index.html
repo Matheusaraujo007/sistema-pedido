@@ -209,11 +209,6 @@ document.addEventListener("input", function(e) {
     if (e.target.closest("#itensContainer")) atualizarValorTotal();
 });
 
-// ----- Inicializando Supabase antes de qualquer uso -----
-const supabaseUrl = "https://jeddjulucawhwxtocnqy.supabase.co";
-const supabaseKey = "yJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGRqdWx1Y2F3aHd4dG9jbnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwOTA4MDIsImV4cCI6MjA3MDY2NjgwMn0.AmHHBMpM4Fy0D021wdgWAEEn50rlYqVJa491qJ7mBbc"; // Troque pela sua chave anon do Supabase
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
 document.getElementById("pedidoForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
@@ -230,43 +225,33 @@ document.getElementById("pedidoForm").addEventListener("submit", async function(
         nomeCliente: document.getElementById("nomeCliente").value,
         telefoneCliente: document.getElementById("telefoneCliente").value,
         itens,
-        dataPedido: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD
+        dataPedido: new Date().toISOString().split("T")[0],
         dataEntrega: document.getElementById("dataEntrega").value,
         valorTotal: itens.reduce((acc, item) => acc + item.total, 0),
         valorRecebido: parseFloat(valorRecebidoEl.value) || 0,
         status: "Aguardando Retorno"
     };
 
-    // Salva localmente
-    let pedidosLocal = JSON.parse(localStorage.getItem("pedidos")) || [];
-    pedidosLocal.push(pedido);
-    localStorage.setItem("pedidos", JSON.stringify(pedidosLocal));
-
-    // Envia para Supabase
-    const { error } = await supabase
-        .from('pedidos')
-        .insert([{
-            vendedor: pedido.vendedor,
-            nome_cliente: pedido.nomeCliente,
-            telefone_cliente: pedido.telefoneCliente,
-            itens: JSON.stringify(pedido.itens),
-            data_pedido: pedido.dataPedido,
-            data_entrega: pedido.dataEntrega,
-            valor_total: pedido.valorTotal,
-            valor_recebido: pedido.valorRecebido,
-            status: pedido.status
-        }]);
-
-    if (error) {
-        alert("❌ Erro ao enviar para o Supabase: " + error.message);
-    } else {
-        alert("✅ Pedido cadastrado com sucesso!");
-        this.reset();
-        dataPedidoEl.value = formatDateForDisplay(hoje);
-        dataEntregaEl.value = formatDateForInput(entrega);
-        document.getElementById("itensContainer").innerHTML = "";
-        document.getElementById("itensContainer").appendChild(criarItem());
-        atualizarValorTotal();
+    try {
+        const resp = await fetch('/salvar-pedido', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pedido)
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+            alert("✅ Pedido cadastrado com sucesso no Redis!");
+            this.reset();
+            dataPedidoEl.value = formatDateForDisplay(hoje);
+            dataEntregaEl.value = formatDateForInput(entrega);
+            document.getElementById("itensContainer").innerHTML = "";
+            document.getElementById("itensContainer").appendChild(criarItem());
+            atualizarValorTotal();
+        } else {
+            alert("❌ Erro ao salvar pedido: " + data.erro);
+        }
+    } catch (err) {
+        alert("❌ Erro ao salvar pedido: " + err.message);
     }
 });
 </script>

@@ -77,14 +77,8 @@
 <div id="listaPedidos"></div>
 <a href="index.html" class="voltar">⬅ Voltar</a>
 
-<!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.2/dist/supabase.min.js"></script>
 <script>
-// Inicialização do Supabase
-const supabaseUrl = "https://jeddjulucawhwxtocnqy.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGRqdWx1Y2F3aHd4dG9jbnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwOTA4MDIsImV4cCI6MjA3MDY2NjgwMn0.AmHHBMpM4Fy0D021wdgWAEEn50rlYqVJa491qJ7mBbc";
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
+// Elemento onde os pedidos vão aparecer
 const lista = document.getElementById("listaPedidos");
 
 // Função para formatar data para DD/MM/AAAA
@@ -94,74 +88,70 @@ function formatarDataBR(dataISO) {
     return `${dia}/${mes}/${ano}`;
 }
 
-// Função para carregar pedidos
+// Função para carregar pedidos do Redis via backend
 async function carregarPedidos() {
     lista.innerHTML = "<p style='text-align:center;color:#666;'>Carregando pedidos...</p>";
 
-    // Buscar pedidos do Supabase
-    const { data: pedidos, error } = await supabase
-        .from("pedidos")
-        .select("*")
-        .order('data_pedido', { ascending: false });
+    try {
+        const resp = await fetch('/pedidos');
+        const pedidos = await resp.json();
 
-    if (error) {
-        lista.innerHTML = `<p style='text-align:center;color:red;'>Erro ao carregar pedidos: ${error.message}</p>`;
-        return;
-    }
-
-    if (!pedidos || pedidos.length === 0) {
-        lista.innerHTML = "<p style='text-align:center;color:#666;'>Nenhum pedido encontrado.</p>";
-        return;
-    }
-
-    lista.innerHTML = "";
-
-    pedidos.forEach(pedido => {
-        const card = document.createElement("div");
-        card.classList.add("pedido-card");
-
-        // Classe do status
-        let statusClasse = "pendente";
-        const statusLower = (pedido.status || "").toLowerCase();
-        if (statusLower.includes("arte") || statusLower.includes("aprovada")) statusClasse = "aprovada";
-        else if (statusLower.includes("finalizado")) statusClasse = "finalizado";
-        else if (statusLower.includes("cancelado")) statusClasse = "cancelado";
-
-        // Itens do pedido (deserializando JSON)
-        let produtosHTML = "<ul>";
-        if (pedido.itens) {
-            let itensArray = [];
-            try { itensArray = JSON.parse(pedido.itens); } catch(e) { itensArray = []; }
-            itensArray.forEach(item => {
-                const valorUnit = Number(item.valorUnit || 0);
-                const totalItem = Number(item.total || 0);
-                produtosHTML += `<li>${item.produto} - ${item.quantidade} un. (R$ ${valorUnit.toFixed(2)}) - Total: R$ ${totalItem.toFixed(2)}</li>`;
-            });
+        if (!pedidos || pedidos.length === 0) {
+            lista.innerHTML = "<p style='text-align:center;color:#666;'>Nenhum pedido encontrado.</p>";
+            return;
         }
-        produtosHTML += "</ul>";
 
-        const valorTotal = Number(pedido.valor_total || 0);
-        const valorRecebido = Number(pedido.valor_recebido || 0);
+        lista.innerHTML = "";
 
-        card.innerHTML = `
-            <div class="pedido-header">
-                <span>📋 Pedido de ${pedido.vendedor || "Não informado"}</span>
-                <span class="status ${statusClasse}">${pedido.status || "Aguardando Retorno"}</span>
-            </div>
-            <div class="pedido-info">
-                <p><b>Cliente:</b> ${pedido.nome_cliente || "Não informado"}</p>
-                <p><b>Telefone:</b> ${pedido.telefone_cliente || "Não informado"}</p>
-                <p><b>Produtos:</b> ${produtosHTML}</p>
-                <p><b>Valor Total do Pedido:</b> R$ ${valorTotal.toFixed(2)}</p>
-                <p><b>Valor Recebido:</b> R$ ${valorRecebido.toFixed(2)}</p>
-                <p><b>Data Pedido:</b> ${formatarDataBR(pedido.data_pedido)}</p>
-                <p><b>Data Entrega:</b> ${formatarDataBR(pedido.data_entrega)}</p>
-            </div>
-        `;
-        lista.appendChild(card);
-    });
+        pedidos.forEach(pedido => {
+            const card = document.createElement("div");
+            card.classList.add("pedido-card");
+
+            // Classe do status
+            let statusClasse = "pendente";
+            const statusLower = (pedido.status || "").toLowerCase();
+            if (statusLower.includes("aprovada")) statusClasse = "aprovada";
+            else if (statusLower.includes("finalizado")) statusClasse = "finalizado";
+            else if (statusLower.includes("cancelado")) statusClasse = "cancelado";
+
+            // Itens do pedido (JSON)
+            let produtosHTML = "<ul>";
+            if (pedido.itens) {
+                pedido.itens.forEach(item => {
+                    const valorUnit = Number(item.valorUnit || 0);
+                    const totalItem = Number(item.total || 0);
+                    produtosHTML += `<li>${item.produto} - ${item.quantidade} un. (R$ ${valorUnit.toFixed(2)}) - Total: R$ ${totalItem.toFixed(2)}</li>`;
+                });
+            }
+            produtosHTML += "</ul>";
+
+            const valorTotal = Number(pedido.valorTotal || 0);
+            const valorRecebido = Number(pedido.valorRecebido || 0);
+
+            card.innerHTML = `
+                <div class="pedido-header">
+                    <span>📋 Pedido de ${pedido.vendedor || "Não informado"}</span>
+                    <span class="status ${statusClasse}">${pedido.status || "Aguardando Retorno"}</span>
+                </div>
+                <div class="pedido-info">
+                    <p><b>Cliente:</b> ${pedido.nomeCliente || "Não informado"}</p>
+                    <p><b>Telefone:</b> ${pedido.telefoneCliente || "Não informado"}</p>
+                    <p><b>Produtos:</b> ${produtosHTML}</p>
+                    <p><b>Valor Total do Pedido:</b> R$ ${valorTotal.toFixed(2)}</p>
+                    <p><b>Valor Recebido:</b> R$ ${valorRecebido.toFixed(2)}</p>
+                    <p><b>Data Pedido:</b> ${formatarDataBR(pedido.dataPedido)}</p>
+                    <p><b>Data Entrega:</b> ${formatarDataBR(pedido.dataEntrega)}</p>
+                </div>
+            `;
+            lista.appendChild(card);
+        });
+
+    } catch (err) {
+        lista.innerHTML = `<p style='text-align:center;color:red;'>Erro ao carregar pedidos: ${err.message}</p>`;
+    }
 }
 
+// Carrega os pedidos ao abrir a página
 carregarPedidos();
 </script>
 
