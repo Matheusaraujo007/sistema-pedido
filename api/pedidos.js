@@ -6,14 +6,12 @@ const redis = new Redis({
 });
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') return res.status(405).json({ erro: 'Método não permitido' });
-
   try {
-    const data = await redis.lrange('pedidos', 0, -1);
-    const pedidos = data.map(item => JSON.parse(item));
+    const pedidos = await getPedidosFromDB(); // sua função de DB
     res.status(200).json(pedidos);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ erro: err.message });
+    res.status(500).json({ error: 'Erro ao buscar pedidos' });
   }
 }
+
