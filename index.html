@@ -212,7 +212,7 @@ document.addEventListener("input", function(e) {
 // ----- Inicializando Supabase antes de qualquer uso -----
 const supabaseUrl = "https://jeddjulucawhwxtocnqy.supabase.co";
 const supabaseKey = "sb_publishable_Zjzfd9wd3YJB4m4WMDgpLA_g7lXEk0f"; // sua chave
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseClient = supabase.createClients(supabaseUrl, supabaseKey);
 
 document.getElementById("pedidoForm").addEventListener("submit", async function(e) {
     e.preventDefault();
