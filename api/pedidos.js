@@ -1,18 +1,17 @@
 import { Redis } from '@upstash/redis';
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
+const redis = Redis.fromEnv();
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
-      const pedidos = await redis.lrange('pedidos', 0, -1); // retorna array de strings
-      const pedidosJSON = pedidos.map(p => JSON.parse(p)); // transforma em objetos
-      res.status(200).json(pedidosJSON); // envia como array
+      const data = await redis.lrange('pedidos', 0, -1); // retorna array de strings
+      const pedidos = data.map(item => JSON.parse(item)); // converte para objetos
+
+      res.status(200).json(pedidos); // <=== retorna ARRAY direto
     } catch (err) {
-      res.status(500).json({ erro: err.message }); // aqui é objeto, não array
+      console.error(err);
+      res.status(500).json({ erro: err.message });
     }
   } else {
     res.status(405).json({ erro: 'Método não permitido' });
