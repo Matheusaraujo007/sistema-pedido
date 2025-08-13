@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📦 Meus Pedidos</title>
+<style>
+    body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #f4f7fb;
+        margin: 0;
+        padding: 20px;
+    }
+    h1 {
+        text-align: center;
+        color: #2f7fb3;
+        margin-bottom: 20px;
+    }
+    .pedido-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0px 3px 10px rgba(0,0,0,0.1);
+        padding: 15px;
+        margin-bottom: 15px;
+        transition: 0.3s;
+    }
+    .pedido-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0px 5px 15px rgba(0,0,0,0.15);
+    }
+    .pedido-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+        color: #333;
+        flex-wrap: wrap;
+    }
+    .pedido-info {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #555;
+    }
+    .pedido-info ul {
+        padding-left: 20px;
+        margin: 5px 0;
+    }
+    .status {
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .pendente { background: #ffeb99; color: #a67c00; }
+    .aprovada { background: #cce5ff; color: #004085; }
+    .finalizado { background: #d4edda; color: #155724; }
+    .cancelado { background: #f8d7da; color: #721c24; }
+    .voltar {
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        background: #2f7fb3;
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .voltar:hover {
+        background: #25658d;
+    }
+</style>
+</head>
+<body>
+
+<h1>📦 Meus Pedidos</h1>
+<div id="listaPedidos"></div>
+
+<a href="index.html" class="voltar">⬅ Voltar</a>
+
+<!-- Import Supabase -->
+<script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const SUPABASE_URL = 'https://jeddjulucawhwxtocnqy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGRqdWx1Y2F3aHd4dG9jbnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwOTA4MDIsImV4cCI6MjA3MDY2NjgwMn0.AmHHBMpM4Fy0D021wdgWAEEn50rlYqVJa491qJ7mBbc';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const lista = document.getElementById("listaPedidos");
+
+    function formatarDataBR(dataISO) {
+        if (!dataISO) return "";
+        const [ano, mes, dia] = dataISO.split("-");
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    async function carregarPedidos() {
+        lista.innerHTML = "";
+
+        const { data: pedidos, error } = await supabase
+            .from('pedidos')
+            .select('*')
+            .order('data_pedido', { ascending: true });
+
+        if (error) {
+            console.error(error);
+            lista.innerHTML = "<p style='text-align:center;color:#666;'>Erro ao carregar pedidos.</p>";
+            return;
+        }
+
+        if (!pedidos || pedidos.length === 0) {
+            lista.innerHTML = "<p style='text-align:center;color:#666;'>Nenhum pedido encontrado.</p>";
+            return;
+        }
+
+        pedidos.forEach(pedido => {
+            const card = document.createElement("div");
+            card.classList.add("pedido-card");
+
+            let statusClasse = "pendente";
+            if (pedido.status === "Arte aprovada") statusClasse = "aprovada";
+            else if (pedido.status === "Pedido Finalizado") statusClasse = "finalizado";
+            else if (pedido.status === "Cancelado") statusClasse = "cancelado";
+
+            let produtosHTML = "<ul>";
+            if (pedido.itens) {
+                pedido.itens.forEach(item => {
+                    produtosHTML += `<li>${item.produto} - ${item.quantidade} un. (R$ ${item.valorUnit.toFixed(2)}) - Total: R$ ${item.total.toFixed(2)}</li>`;
+                });
+            }
+            produtosHTML += "</ul>";
+
+            const valorRecebido = pedido.valorRecebido || 0;
+
+            card.innerHTML = `
+                <div class="pedido-header">
+                    <span>📋 Pedido de ${pedido.seuNome}</span>
+                    <span class="status ${statusClasse}">${pedido.status || "Aguardando Retorno"}</span>
+                </div>
+                <div class="pedido-info">
+                    <p><b>Cliente:</b> ${pedido.nomeCliente}</p>
+                    <p><b>Telefone:</b> ${pedido.telefoneCliente}</p>
+                    <p><b>Produtos:</b> ${produtosHTML}</p>
+                    <p><b>Valor Total do Pedido:</b> R$ ${pedido.valorTotal.toFixed(2)}</p>
+                    <p><b>Valor Recebido:</b> R$ ${valorRecebido.toFixed(2)}</p>
+                    <p><b>Data Pedido:</b> ${pedido.dataPedido}</p>
+                    <p><b>Data Entrega:</b> ${formatarDataBR(pedido.dataEntrega)}</p>
+                </div>
+            `;
+            lista.appendChild(card);
+        });
+    }
+
+    // Carrega pedidos ao abrir a página
+    carregarPedidos();
+</script>
+
+</body>
+</html>
