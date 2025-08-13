@@ -7,6 +7,9 @@ const redis = new Redis({
 
 export default async function handler(req, res) {
   try {
+    // =========================
+    // POST - adicionar pedido
+    // =========================
     if (req.method === 'POST') {
       const {
         vendedor,
@@ -24,7 +27,7 @@ export default async function handler(req, res) {
         vendedor: vendedor || 'Não informado',
         nomeCliente: nomeCliente || 'Não informado',
         telefoneCliente: telefoneCliente || 'Não informado',
-        itens: itens || [],
+        itens: Array.isArray(itens) ? itens : [],
         dataPedido: dataPedido || '',
         dataEntrega: dataEntrega || '',
         valorTotal: parseFloat(valorTotal) || 0,
@@ -33,19 +36,36 @@ export default async function handler(req, res) {
       };
 
       await redis.lpush('pedidos', JSON.stringify(pedido));
+      console.log("Pedido adicionado:", pedido);
       return res.status(200).json({ sucesso: true });
     }
 
+    // =========================
+    // GET - buscar pedidos
+    // =========================
     if (req.method === 'GET') {
+      console.log("Buscando pedidos...");
       const pedidosRaw = await redis.lrange('pedidos', 0, -1);
-      const pedidos = pedidosRaw.map(p => {
-        try { return JSON.parse(p); }
-        catch { return null; }
-      }).filter(p => p !== null);
+      console.log("Pedidos crus do Redis:", pedidosRaw);
+
+      const pedidos = pedidosRaw
+        .map(p => {
+          try {
+            return JSON.parse(p);
+          } catch (e) {
+            console.error("Erro ao parsear pedido:", p, e);
+            return null;
+          }
+        })
+        .filter(Boolean)
+        .reverse(); // Inverte a ordem para do mais antigo ao mais recente
 
       return res.status(200).json(pedidos);
     }
 
+    // =========================
+    // Método não permitido
+    // =========================
     res.status(405).json({ erro: 'Método não permitido' });
 
   } catch (err) {
