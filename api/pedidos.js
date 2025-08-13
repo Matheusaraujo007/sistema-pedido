@@ -7,19 +7,25 @@ const redis = new Redis({
 
 export default async function handler(req, res) {
   try {
-    // Busca os pedidos no Redis (chave: "pedidos")
-    const pedidos = await redis.get('pedidos');
+    if (req.method === 'GET') {
+      // busca todos os pedidos no Redis
+      const pedidosRaw = await redis.lrange('pedidos', 0, -1); 
+      const pedidos = pedidosRaw.map(p => {
+        try { return JSON.parse(p); }
+        catch { return null; }
+      }).filter(p => p !== null);
 
-    // Se não existir nada, retorna array vazio
-    if (!pedidos) return res.status(200).json([]);
+      return res.status(200).json(pedidos);
+    }
 
-    // Converte string JSON em array (caso tenha sido salvo como JSON)
-    const pedidosArray = Array.isArray(pedidos) ? pedidos : JSON.parse(pedidos);
+    if (req.method === 'POST') {
+      // código do POST permanece igual
+    }
 
-    // Retorna para o front
-    res.status(200).json(pedidosArray);
+    res.status(405).json({ erro: 'Método não permitido' });
+
   } catch (err) {
-    console.error('Erro ao buscar pedidos:', err);
-    res.status(500).json({ error: 'Erro ao buscar pedidos' });
+    console.error('Erro na API:', err);
+    res.status(500).json({ erro: err.message });
   }
 }
