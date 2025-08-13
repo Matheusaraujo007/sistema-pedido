@@ -7,9 +7,37 @@ const redis = new Redis({
 
 export default async function handler(req, res) {
   try {
+    if (req.method === 'POST') {
+      const {
+        vendedor,
+        nomeCliente,
+        telefoneCliente,
+        itens,
+        dataPedido,
+        dataEntrega,
+        valorTotal,
+        valorRecebido,
+        status
+      } = req.body;
+
+      const pedido = {
+        vendedor: vendedor || 'Não informado',
+        nomeCliente: nomeCliente || 'Não informado',
+        telefoneCliente: telefoneCliente || 'Não informado',
+        itens: itens || [],
+        dataPedido: dataPedido || '',
+        dataEntrega: dataEntrega || '',
+        valorTotal: parseFloat(valorTotal) || 0,
+        valorRecebido: parseFloat(valorRecebido) || 0,
+        status: status || 'Aguardando Retorno'
+      };
+
+      await redis.lpush('pedidos', JSON.stringify(pedido));
+      return res.status(200).json({ sucesso: true });
+    }
+
     if (req.method === 'GET') {
-      // busca todos os pedidos no Redis
-      const pedidosRaw = await redis.lrange('pedidos', 0, -1); 
+      const pedidosRaw = await redis.lrange('pedidos', 0, -1);
       const pedidos = pedidosRaw.map(p => {
         try { return JSON.parse(p); }
         catch { return null; }
@@ -18,26 +46,10 @@ export default async function handler(req, res) {
       return res.status(200).json(pedidos);
     }
 
-    if (req.method === 'POST') {
-      // código do POST permanece igual
-    }
-
     res.status(405).json({ erro: 'Método não permitido' });
 
   } catch (err) {
     console.error('Erro na API:', err);
     res.status(500).json({ erro: err.message });
-  }
-}
-
-
-
-export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    // salva pedido
-  } else if (req.method === 'GET') {
-    // retorna todos os pedidos
-  } else {
-    res.status(405).json({ erro: 'Método não permitido' });
   }
 }
