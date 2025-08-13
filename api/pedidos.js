@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Redis } from '@upstash/redis';
 
 const redis = new Redis({
@@ -7,11 +8,6 @@ const redis = new Redis({
 
 export default async function handler(req, res) {
   try {
-    console.log("Recebido request:", req.method);
-
-    // =========================
-    // POST - adicionar pedido
-    // =========================
     if (req.method === 'POST') {
       const {
         vendedor,
@@ -37,49 +33,37 @@ export default async function handler(req, res) {
         status: status || 'Aguardando Retorno'
       };
 
-      // Adiciona o pedido
+      // salva pedido no Redis
       await redis.lpush('pedidos', JSON.stringify(pedido));
+
+      // retorna quantidade atual de pedidos
+      const total = await redis.llen('pedidos');
+
       console.log("Pedido adicionado:", pedido);
+      console.log("Total de pedidos:", total);
 
-      // Verifica quantos pedidos existem agora
-      const totalPedidos = await redis.llen('pedidos');
-      console.log("Total de pedidos na lista:", totalPedidos);
-
-      return res.status(200).json({ sucesso: true, totalPedidos });
+      return res.status(200).json({ sucesso: true, totalPedidos: total });
     }
 
-    // =========================
-    // GET - buscar pedidos
-    // =========================
     if (req.method === 'GET') {
-      console.log("Buscando pedidos...");
       const pedidosRaw = await redis.lrange('pedidos', 0, -1);
-      console.log("Pedidos crus do Redis:", pedidosRaw);
 
       const pedidos = pedidosRaw
         .map(p => {
-          try {
-            return JSON.parse(p);
-          } catch (e) {
-            console.error("Erro ao parsear pedido:", p, e);
-            return null;
-          }
+          try { return JSON.parse(p); }
+          catch (e) { return null; }
         })
         .filter(Boolean)
         .reverse(); // do mais antigo para o mais recente
 
-      console.log(`Pedidos processados: ${pedidos.length}`);
+      console.log("Pedidos retornados:", pedidos.length);
 
       return res.status(200).json(pedidos);
     }
 
-    // =========================
-    // Método não permitido
-    // =========================
     res.status(405).json({ erro: 'Método não permitido' });
-
   } catch (err) {
-    console.error('Erro na API:', err, err.stack);
+    console.error('Erro na API:', err);
     res.status(500).json({ erro: err.message });
   }
 }
