@@ -1,22 +1,20 @@
-import { Redis } from '@upstash/redis';
+import Redis from '@upstash/redis';
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
+const redis = Redis.fromEnv(); // Ou inicialize com sua URL e TOKEN
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    try {
-      const pedido = req.body;
-      // Gerar uma chave única para cada pedido
-      const chave = `pedido:${Date.now()}`;
-      await redis.set(chave, JSON.stringify(pedido));
-      res.status(200).json({ sucesso: true, chave });
-    } catch (err) {
-      res.status(500).json({ sucesso: false, erro: err.message });
+    if (req.method === 'POST') {
+        try {
+            const pedido = req.body;
+
+            // Salva o pedido como JSON na lista "pedidos"
+            await redis.lpush('pedidos', JSON.stringify(pedido));
+
+            res.status(200).json({ sucesso: true });
+        } catch (err) {
+            res.status(500).json({ erro: err.message });
+        }
+    } else {
+        res.status(405).json({ erro: 'Método não permitido' });
     }
-  } else {
-    res.status(405).json({ sucesso: false, erro: 'Método não permitido' });
-  }
 }
