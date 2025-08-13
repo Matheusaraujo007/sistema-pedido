@@ -211,8 +211,8 @@ document.addEventListener("input", function(e) {
 
 // ----- Inicializando Supabase antes de qualquer uso -----
 const supabaseUrl = "https://jeddjulucawhwxtocnqy.supabase.co";
-const supabaseKey = "sb_publishable_Zjzfd9wd3YJB4m4WMDgpLA_g7lXEk0f"; // sua chave
-const supabaseClient = supabase.createClients(supabaseUrl, supabaseKey);
+const supabaseKey = "yJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGRqdWx1Y2F3aHd4dG9jbnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwOTA4MDIsImV4cCI6MjA3MDY2NjgwMn0.AmHHBMpM4Fy0D021wdgWAEEn50rlYqVJa491qJ7mBbc"; // Troque pela sua chave anon do Supabase
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 document.getElementById("pedidoForm").addEventListener("submit", async function(e) {
     e.preventDefault();
@@ -230,30 +230,32 @@ document.getElementById("pedidoForm").addEventListener("submit", async function(
         nomeCliente: document.getElementById("nomeCliente").value,
         telefoneCliente: document.getElementById("telefoneCliente").value,
         itens,
-        dataPedido: dataPedidoEl.value,
-        dataEntrega: dataEntregaEl.value,
+        dataPedido: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD
+        dataEntrega: document.getElementById("dataEntrega").value,
         valorTotal: itens.reduce((acc, item) => acc + item.total, 0),
         valorRecebido: parseFloat(valorRecebidoEl.value) || 0,
         status: "Aguardando Retorno"
     };
 
-    // LocalStorage
+    // Salva localmente
     let pedidosLocal = JSON.parse(localStorage.getItem("pedidos")) || [];
     pedidosLocal.push(pedido);
     localStorage.setItem("pedidos", JSON.stringify(pedidosLocal));
 
-    // Envio para Supabase
-    const { data, error } = await supabase.from('pedidos').insert([{
-        vendedor: pedido.vendedor,
-        nome_cliente: pedido.nomeCliente,
-        telefone_cliente: pedido.telefoneCliente,
-        itens: JSON.stringify(pedido.itens),
-        data_pedido: pedido.dataPedido,
-        data_entrega: pedido.dataEntrega,
-        valor_total: pedido.valorTotal,
-        valor_recebido: pedido.valorRecebido,
-        status: pedido.status
-    }]);
+    // Envia para Supabase
+    const { error } = await supabase
+        .from('pedidos')
+        .insert([{
+            vendedor: pedido.vendedor,
+            nome_cliente: pedido.nomeCliente,
+            telefone_cliente: pedido.telefoneCliente,
+            itens: JSON.stringify(pedido.itens),
+            data_pedido: pedido.dataPedido,
+            data_entrega: pedido.dataEntrega,
+            valor_total: pedido.valorTotal,
+            valor_recebido: pedido.valorRecebido,
+            status: pedido.status
+        }]);
 
     if (error) {
         alert("❌ Erro ao enviar para o Supabase: " + error.message);
