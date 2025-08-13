@@ -232,11 +232,11 @@ document.getElementById("pedidoForm").addEventListener("submit", async function(
 
     try {
         const resp = await fetch('/api/salvar-pedido', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(pedido)
-        });
-        const data = await resp.json();
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pedido)  // aqui tem que ser JSON válido
+});
+const data = await resp.json();
         if (data.sucesso) {
             alert("✅ Pedido cadastrado com sucesso no Redis!");
             this.reset();
