@@ -75,84 +75,78 @@
 
 <h1>📦 Meus Pedidos</h1>
 <div id="listaPedidos"></div>
-
 <a href="index.html" class="voltar">⬅ Voltar</a>
 
-<!-- Import Supabase -->
-<script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.2/dist/supabase.min.js"></script>
+<script>
+const supabaseUrl = "YOUR_SUPABASE_URL";       // ← coloque sua URL do Supabase
+const supabaseKey = "YOUR_SUPABASE_ANON_KEY"; // ← coloque sua ANON KEY
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    const SUPABASE_URL = 'https://jeddjulucawhwxtocnqy.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGRqdWx1Y2F3aHd4dG9jbnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwOTA4MDIsImV4cCI6MjA3MDY2NjgwMn0.AmHHBMpM4Fy0D021wdgWAEEn50rlYqVJa491qJ7mBbc';
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const lista = document.getElementById("listaPedidos");
 
-    const lista = document.getElementById("listaPedidos");
+function formatarDataBR(dataISO) {
+    if (!dataISO) return "";
+    const [ano, mes, dia] = dataISO.split("-");
+    return `${dia}/${mes}/${ano}`;
+}
 
-    function formatarDataBR(dataISO) {
-        if (!dataISO) return "";
-        const [ano, mes, dia] = dataISO.split("-");
-        return `${dia}/${mes}/${ano}`;
+async function carregarPedidos() {
+    lista.innerHTML = "<p style='text-align:center;color:#666;'>Carregando pedidos...</p>";
+
+    const { data: pedidos, error } = await supabase.from("pedidos").select("*").order('dataPedido', { ascending: false });
+
+    if (error) {
+        lista.innerHTML = `<p style='text-align:center;color:red;'>Erro ao carregar pedidos: ${error.message}</p>`;
+        return;
     }
 
-    async function carregarPedidos() {
-        lista.innerHTML = "";
-
-        const { data: pedidos, error } = await supabase
-            .from('pedidos')
-            .select('*')
-            .order('data_pedido', { ascending: true });
-
-        if (error) {
-            console.error(error);
-            lista.innerHTML = "<p style='text-align:center;color:#666;'>Erro ao carregar pedidos.</p>";
-            return;
-        }
-
-        if (!pedidos || pedidos.length === 0) {
-            lista.innerHTML = "<p style='text-align:center;color:#666;'>Nenhum pedido encontrado.</p>";
-            return;
-        }
-
-        pedidos.forEach(pedido => {
-            const card = document.createElement("div");
-            card.classList.add("pedido-card");
-
-            let statusClasse = "pendente";
-            if (pedido.status === "Arte aprovada") statusClasse = "aprovada";
-            else if (pedido.status === "Pedido Finalizado") statusClasse = "finalizado";
-            else if (pedido.status === "Cancelado") statusClasse = "cancelado";
-
-            let produtosHTML = "<ul>";
-            if (pedido.itens) {
-                pedido.itens.forEach(item => {
-                    produtosHTML += `<li>${item.produto} - ${item.quantidade} un. (R$ ${item.valorUnit.toFixed(2)}) - Total: R$ ${item.total.toFixed(2)}</li>`;
-                });
-            }
-            produtosHTML += "</ul>";
-
-            const valorRecebido = pedido.valorRecebido || 0;
-
-            card.innerHTML = `
-                <div class="pedido-header">
-                    <span>📋 Pedido de ${pedido.seuNome}</span>
-                    <span class="status ${statusClasse}">${pedido.status || "Aguardando Retorno"}</span>
-                </div>
-                <div class="pedido-info">
-                    <p><b>Cliente:</b> ${pedido.nomeCliente}</p>
-                    <p><b>Telefone:</b> ${pedido.telefoneCliente}</p>
-                    <p><b>Produtos:</b> ${produtosHTML}</p>
-                    <p><b>Valor Total do Pedido:</b> R$ ${pedido.valorTotal.toFixed(2)}</p>
-                    <p><b>Valor Recebido:</b> R$ ${valorRecebido.toFixed(2)}</p>
-                    <p><b>Data Pedido:</b> ${pedido.dataPedido}</p>
-                    <p><b>Data Entrega:</b> ${formatarDataBR(pedido.dataEntrega)}</p>
-                </div>
-            `;
-            lista.appendChild(card);
-        });
+    if (!pedidos || pedidos.length === 0) {
+        lista.innerHTML = "<p style='text-align:center;color:#666;'>Nenhum pedido encontrado.</p>";
+        return;
     }
 
-    // Carrega pedidos ao abrir a página
-    carregarPedidos();
+    lista.innerHTML = "";
+
+    pedidos.forEach(pedido => {
+        const card = document.createElement("div");
+        card.classList.add("pedido-card");
+
+        let statusClasse = "pendente";
+        if (pedido.status.toLowerCase().includes("arte")) statusClasse = "aprovada";
+        else if (pedido.status.toLowerCase().includes("finalizado")) statusClasse = "finalizado";
+        else if (pedido.status.toLowerCase().includes("cancelado")) statusClasse = "cancelado";
+
+        let produtosHTML = "<ul>";
+        if (pedido.itens) {
+            pedido.itens.forEach(item => {
+                produtosHTML += `<li>${item.produto} - ${item.quantidade} un. (R$ ${item.valorUnit.toFixed(2)}) - Total: R$ ${(item.total).toFixed(2)}</li>`;
+            });
+        }
+        produtosHTML += "</ul>";
+
+        const valorRecebido = pedido.valorRecebido || 0;
+
+        card.innerHTML = `
+            <div class="pedido-header">
+                <span>📋 Pedido de ${pedido.seuNome}</span>
+                <span class="status ${statusClasse}">${pedido.status || "Aguardando Retorno"}</span>
+            </div>
+            <div class="pedido-info">
+                <p><b>Cliente:</b> ${pedido.nomeCliente}</p>
+                <p><b>Telefone:</b> ${pedido.telefoneCliente}</p>
+                <p><b>Produtos:</b> ${produtosHTML}</p>
+                <p><b>Valor Total do Pedido:</b> R$ ${pedido.valorTotal.toFixed(2)}</p>
+                <p><b>Valor Recebido:</b> R$ ${valorRecebido.toFixed(2)}</p>
+                <p><b>Data Pedido:</b> ${pedido.dataPedido}</p>
+                <p><b>Data Entrega:</b> ${formatarDataBR(pedido.dataEntrega)}</p>
+            </div>
+        `;
+        lista.appendChild(card);
+    });
+}
+
+carregarPedidos();
 </script>
 
 </body>
