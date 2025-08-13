@@ -83,13 +83,13 @@
 // Inicialização do Supabase
 const supabaseUrl = "https://jeddjulucawhwxtocnqy.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGRqdWx1Y2F3aHd4dG9jbnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwOTA4MDIsImV4cCI6MjA3MDY2NjgwMn0.AmHHBMpM4Fy0D021wdgWAEEn50rlYqVJa491qJ7mBbc";
-const supabase = window.supabase.createClientv(supabaseUrl, supabaseKey);
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 const lista = document.getElementById("listaPedidos");
 
-// Formata data para DD/MM/AAAA
+// Função para formatar data para DD/MM/AAAA
 function formatarDataBR(dataISO) {
-    if (!dataISO) return "";
+    if (!dataISO || typeof dataISO !== "string") return "";
     const [ano, mes, dia] = dataISO.split("-");
     return `${dia}/${mes}/${ano}`;
 }
@@ -133,23 +133,26 @@ async function carregarPedidos() {
             let itensArray = [];
             try { itensArray = JSON.parse(pedido.itens); } catch(e) { itensArray = []; }
             itensArray.forEach(item => {
-                produtosHTML += `<li>${item.produto} - ${item.quantidade} un. (R$ ${item.valorUnit.toFixed(2)}) - Total: R$ ${item.total.toFixed(2)}</li>`;
+                const valorUnit = Number(item.valorUnit || 0);
+                const totalItem = Number(item.total || 0);
+                produtosHTML += `<li>${item.produto} - ${item.quantidade} un. (R$ ${valorUnit.toFixed(2)}) - Total: R$ ${totalItem.toFixed(2)}</li>`;
             });
         }
         produtosHTML += "</ul>";
 
-        const valorRecebido = pedido.valor_recebido || 0;
+        const valorTotal = Number(pedido.valor_total || 0);
+        const valorRecebido = Number(pedido.valor_recebido || 0);
 
         card.innerHTML = `
             <div class="pedido-header">
-                <span>📋 Pedido de ${pedido.vendedor}</span>
+                <span>📋 Pedido de ${pedido.vendedor || "Não informado"}</span>
                 <span class="status ${statusClasse}">${pedido.status || "Aguardando Retorno"}</span>
             </div>
             <div class="pedido-info">
-                <p><b>Cliente:</b> ${pedido.nome_cliente}</p>
-                <p><b>Telefone:</b> ${pedido.telefone_cliente}</p>
+                <p><b>Cliente:</b> ${pedido.nome_cliente || "Não informado"}</p>
+                <p><b>Telefone:</b> ${pedido.telefone_cliente || "Não informado"}</p>
                 <p><b>Produtos:</b> ${produtosHTML}</p>
-                <p><b>Valor Total do Pedido:</b> R$ ${pedido.valor_total.toFixed(2)}</p>
+                <p><b>Valor Total do Pedido:</b> R$ ${valorTotal.toFixed(2)}</p>
                 <p><b>Valor Recebido:</b> R$ ${valorRecebido.toFixed(2)}</p>
                 <p><b>Data Pedido:</b> ${formatarDataBR(pedido.data_pedido)}</p>
                 <p><b>Data Entrega:</b> ${formatarDataBR(pedido.data_entrega)}</p>
@@ -161,7 +164,6 @@ async function carregarPedidos() {
 
 carregarPedidos();
 </script>
-
 
 </body>
 </html>
