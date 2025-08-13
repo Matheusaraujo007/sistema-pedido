@@ -273,7 +273,8 @@ document.getElementById("pedidoForm").addEventListener("submit", async function(
     localStorage.setItem("pedidos", JSON.stringify(pedidosLocal));
 
     // Envio para Supabase
-    const { data, error } = await supabase.from('pedidos').insert([{
+    document.getElementById("pedidoForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
         vendedor: pedido.vendedor,
         nome_cliente: pedido.nomeCliente,
         telefone_cliente: pedido.telefoneCliente,
