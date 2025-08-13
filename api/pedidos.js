@@ -7,6 +7,8 @@ const redis = new Redis({
 
 export default async function handler(req, res) {
   try {
+    console.log("Recebido request:", req.method);
+
     // =========================
     // POST - adicionar pedido
     // =========================
@@ -35,9 +37,15 @@ export default async function handler(req, res) {
         status: status || 'Aguardando Retorno'
       };
 
+      // Adiciona o pedido
       await redis.lpush('pedidos', JSON.stringify(pedido));
       console.log("Pedido adicionado:", pedido);
-      return res.status(200).json({ sucesso: true });
+
+      // Verifica quantos pedidos existem agora
+      const totalPedidos = await redis.llen('pedidos');
+      console.log("Total de pedidos na lista:", totalPedidos);
+
+      return res.status(200).json({ sucesso: true, totalPedidos });
     }
 
     // =========================
@@ -58,7 +66,9 @@ export default async function handler(req, res) {
           }
         })
         .filter(Boolean)
-        .reverse(); // Inverte a ordem para do mais antigo ao mais recente
+        .reverse(); // do mais antigo para o mais recente
+
+      console.log(`Pedidos processados: ${pedidos.length}`);
 
       return res.status(200).json(pedidos);
     }
@@ -69,7 +79,7 @@ export default async function handler(req, res) {
     res.status(405).json({ erro: 'Método não permitido' });
 
   } catch (err) {
-    console.error('Erro na API:', err);
+    console.error('Erro na API:', err, err.stack);
     res.status(500).json({ erro: err.message });
   }
 }
