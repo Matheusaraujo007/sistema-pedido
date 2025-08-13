@@ -1,158 +1,321 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📦 Meus Pedidos</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cadastro de Pedido</title>
 <style>
+    :root {
+        --primary: #2f7fb3;
+        --primary-hover: #25658d;
+        --success: #28a745;
+        --success-hover: #218838;
+        --danger: #dc3545;
+        --danger-hover: #b02a37;
+        --light-bg: #f7f9fc;
+        --white: #fff;
+        --gray: #333;
+        --border-color: #ccc;
+    }
+
     body {
         font-family: "Segoe UI", Arial, sans-serif;
-        background: #f4f7fb;
+        background: var(--light-bg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
         margin: 0;
-        padding: 20px;
+        padding: 15px;
     }
+
+    .container {
+        background: var(--white);
+        width: 100%;
+        max-width: 500px;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0px 4px 20px rgba(0,0,0,0.1);
+    }
+
     h1 {
         text-align: center;
-        color: #2f7fb3;
         margin-bottom: 20px;
+        font-size: 24px;
+        color: var(--primary);
     }
-    .pedido-card {
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0px 3px 10px rgba(0,0,0,0.1);
-        padding: 15px;
+    h1::before {
+        content: "📋 ";
+    }
+
+    .form-group {
         margin-bottom: 15px;
+    }
+
+    label {
+        font-weight: 600;
+        display: block;
+        margin-bottom: 5px;
+        color: var(--gray);
+    }
+
+    input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 14px;
         transition: 0.3s;
     }
-    .pedido-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0px 5px 15px rgba(0,0,0,0.15);
+    input:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0px 0px 6px rgba(47, 127, 179, 0.3);
     }
-    .pedido-header {
+
+    .dates {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-weight: bold;
-        color: #333;
-        flex-wrap: wrap;
+        gap: 10px;
     }
-    .pedido-info {
-        margin-top: 10px;
+    .dates input {
+        flex: 1;
+    }
+
+    button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
         font-size: 14px;
-        color: #555;
-    }
-    .pedido-info ul {
-        padding-left: 20px;
-        margin: 5px 0;
-    }
-    .status {
-        padding: 5px 10px;
-        border-radius: 6px;
-        font-size: 12px;
         font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
     }
-    .pendente { background: #ffeb99; color: #a67c00; }
-    .aprovada { background: #cce5ff; color: #004085; }
-    .finalizado { background: #d4edda; color: #155724; }
-    .cancelado { background: #f8d7da; color: #721c24; }
-    .voltar {
+    .btn-primary {
+        background: var(--primary);
+        color: var(--white);
+    }
+    .btn-primary:hover {
+        background: var(--primary-hover);
+    }
+    .btn-success {
+        background: var(--success);
+        color: var(--white);
+    }
+    .btn-success:hover {
+        background: var(--success-hover);
+    }
+    .btn-danger {
+        background: var(--danger);
+        color: var(--white);
+    }
+    .btn-danger:hover {
+        background: var(--danger-hover);
+    }
+
+    .view-orders {
         display: block;
         text-align: center;
-        margin-top: 20px;
-        background: #2f7fb3;
-        color: white;
-        padding: 10px;
-        border-radius: 8px;
+        margin-top: 15px;
+        color: var(--primary);
         text-decoration: none;
         font-weight: bold;
     }
-    .voltar:hover {
-        background: #25658d;
+    .view-orders:hover {
+        text-decoration: underline;
+    }
+
+    .item-block {
+        border: 1px solid #ddd;
+        padding: 5px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        background: #fafafa;
+    }
+
+    /* Destaque do valor total */
+    .total-pedido {
+        font-weight: bold;
+        color: var(--success);
+        font-size: 18px;
+        background: #e9f7ef;
+        padding: 8px 12px;
+        border-radius: 8px;
+        text-align: center;
     }
 </style>
 </head>
 <body>
 
-<h1>📦 Meus Pedidos</h1>
-<div id="listaPedidos"></div>
+<div class="container">
+    <h1>Cadastro de Pedido</h1>
+    <form id="pedidoForm">
+        <div class="form-group">
+            <label for="seuNome">Vendedor</label>
+            <input type="text" id="seuNome" placeholder="Digite seu nome" required>
+        </div>
+        <div class="form-group">
+            <label for="nomeCliente">Nome do Cliente</label>
+            <input type="text" id="nomeCliente" placeholder="Digite o nome do cliente" required>
+        </div>
+        <div class="form-group">
+            <label for="telefoneCliente">Telefone do Cliente</label>
+            <input type="tel" id="telefoneCliente" placeholder="(XX) XXXXX-XXXX" required>
+        </div>
 
-<a href="index.html" class="voltar">⬅ Voltar</a>
-
-<!-- Import Supabase -->
-<script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
-    const SUPABASE_URL = 'https://jeddjulucawhwxtocnqy.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGRqdWx1Y2F3aHd4dG9jbnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwOTA4MDIsImV4cCI6MjA3MDY2NjgwMn0.AmHHBMpM4Fy0D021wdgWAEEn50rlYqVJa491qJ7mBbc';
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const lista = document.getElementById("listaPedidos");
-
-    function formatarDataBR(dataISO) {
-        if (!dataISO) return "";
-        const [ano, mes, dia] = dataISO.split("-");
-        return `${dia}/${mes}/${ano}`;
-    }
-
-    async function carregarPedidos() {
-        lista.innerHTML = "";
-
-        const { data: pedidos, error } = await supabase
-            .from('pedidos')
-            .select('*')
-            .order('data_pedido', { ascending: true });
-
-        if (error) {
-            console.error(error);
-            lista.innerHTML = "<p style='text-align:center;color:#666;'>Erro ao carregar pedidos.</p>";
-            return;
-        }
-
-        if (!pedidos || pedidos.length === 0) {
-            lista.innerHTML = "<p style='text-align:center;color:#666;'>Nenhum pedido encontrado.</p>";
-            return;
-        }
-
-        pedidos.forEach(pedido => {
-            const card = document.createElement("div");
-            card.classList.add("pedido-card");
-
-            let statusClasse = "pendente";
-            if (pedido.status === "Arte aprovada") statusClasse = "aprovada";
-            else if (pedido.status === "Pedido Finalizado") statusClasse = "finalizado";
-            else if (pedido.status === "Cancelado") statusClasse = "cancelado";
-
-            let produtosHTML = "<ul>";
-            if (pedido.itens) {
-                pedido.itens.forEach(item => {
-                    produtosHTML += `<li>${item.produto} - ${item.quantidade} un. (R$ ${item.valorUnit.toFixed(2)}) - Total: R$ ${item.total.toFixed(2)}</li>`;
-                });
-            }
-            produtosHTML += "</ul>";
-
-            const valorRecebido = pedido.valorRecebido || 0;
-
-            card.innerHTML = `
-                <div class="pedido-header">
-                    <span>📋 Pedido de ${pedido.seuNome}</span>
-                    <span class="status ${statusClasse}">${pedido.status || "Aguardando Retorno"}</span>
+        <div id="itensContainer">
+            <div class="item-block">
+                <div class="form-group">
+                    <label>Produto</label>
+                    <input type="text" placeholder="Digite o produto" required>
                 </div>
-                <div class="pedido-info">
-                    <p><b>Cliente:</b> ${pedido.nomeCliente}</p>
-                    <p><b>Telefone:</b> ${pedido.telefoneCliente}</p>
-                    <p><b>Produtos:</b> ${produtosHTML}</p>
-                    <p><b>Valor Total do Pedido:</b> R$ ${pedido.valorTotal.toFixed(2)}</p>
-                    <p><b>Valor Recebido:</b> R$ ${valorRecebido.toFixed(2)}</p>
-                    <p><b>Data Pedido:</b> ${pedido.dataPedido}</p>
-                    <p><b>Data Entrega:</b> ${formatarDataBR(pedido.dataEntrega)}</p>
+                <div class="form-group">
+                    <label>Quantidade</label>
+                    <input type="number" placeholder="Ex: 10" required>
                 </div>
-            `;
-            lista.appendChild(card);
-        });
-    }
+                <div class="form-group">
+                    <label>Valor Unitário (R$)</label>
+                    <input type="number" step="0.01" placeholder="Ex: 9.90" required>
+                </div>
+                <button type="button" class="btn-danger btn-excluir">❌ Excluir</button>
+            </div>
+        </div>
 
-    // Carrega pedidos ao abrir a página
-    carregarPedidos();
+        <button type="button" class="btn-success" id="btnAddItem">+ Adicionar Item</button>
+
+        <div class="dates form-group">
+            <div>
+                <label for="dataPedido">Dt. Pedido</label>
+                <input type="text" id="dataPedido" readonly>
+            </div>
+            <div>
+                <label for="dataEntrega">Prev. Entrega</label>
+                <input type="date" id="dataEntrega">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Valor Recebido</label>
+            <input type="number" step="0.01" id="valorRecebido" placeholder="Digite o Valor" required>
+        </div>
+
+        <!-- Novo campo Valor Total -->
+        <div class="form-group total-pedido">
+            💰 Valor Total do Pedido: <span id="valorTotalPedido">0,00</span> R$
+        </div>
+
+        <button type="submit" class="btn-primary">📤 Enviar Pedido</button>
+    </form>
+    <a href="meus-pedidos.html" class="view-orders">🔍 Ver Meus Pedidos</a>
+</div>
+
+<script>
+const hoje = new Date();
+const entrega = new Date();
+entrega.setDate(hoje.getDate() + 10);
+
+const dataPedidoEl = document.getElementById("dataPedido");
+const dataEntregaEl = document.getElementById("dataEntrega");
+const valorRecebidoEl = document.getElementById("valorRecebido");
+
+function formatDateForDisplay(date) {
+    return date.toLocaleDateString("pt-BR");
+}
+function formatDateForInput(date) {
+    return date.toISOString().split("T")[0];
+}
+
+dataPedidoEl.value = formatDateForDisplay(hoje);
+dataEntregaEl.value = formatDateForInput(entrega);
+
+// Função para calcular total
+function atualizarValorTotal() {
+    let total = 0;
+    document.querySelectorAll("#itensContainer .item-block").forEach(block => {
+        const quantidade = parseFloat(block.querySelector("input[placeholder^='Ex:']").value) || 0;
+        const valorUnit = parseFloat(block.querySelector("input[step]").value) || 0;
+        total += quantidade * valorUnit;
+    });
+    document.getElementById("valorTotalPedido").textContent = total.toFixed(2).replace('.', ',');
+}
+
+function criarItem() {
+    const item = document.createElement("div");
+    item.classList.add("item-block");
+    item.innerHTML = `
+        <div class="form-group">
+            <label>Produto</label>
+            <input type="text" placeholder="Digite o produto" required>
+        </div>
+        <div class="form-group">
+            <label>Quantidade</label>
+            <input type="number" placeholder="Ex: 10" required>
+        </div>
+        <div class="form-group">
+            <label>Valor Unitário (R$)</label>
+            <input type="number" step="0.01" placeholder="Ex: 9.90" required>
+        </div>
+        <button type="button" class="btn-danger btn-excluir">❌ Excluir</button>
+    `;
+    item.querySelector(".btn-excluir").addEventListener("click", () => {
+        item.remove();
+        atualizarValorTotal();
+    });
+    return item;
+}
+
+document.getElementById("btnAddItem").addEventListener("click", () => {
+    document.getElementById("itensContainer").appendChild(criarItem());
+});
+
+document.querySelectorAll(".btn-excluir").forEach(btn => {
+    btn.addEventListener("click", e => {
+        e.target.closest(".item-block").remove();
+        atualizarValorTotal();
+    });
+});
+
+// Atualizar total ao digitar
+document.addEventListener("input", function(e) {
+    if (e.target.closest("#itensContainer")) {
+        atualizarValorTotal();
+    }
+});
+
+document.getElementById("pedidoForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const itens = [];
+    document.querySelectorAll("#itensContainer .item-block").forEach(block => {
+        const produto = block.querySelector("input[placeholder='Digite o produto']").value;
+        const quantidade = parseInt(block.querySelector("input[placeholder^='Ex:']").value);
+        const valorUnit = parseFloat(block.querySelector("input[step]").value);
+        itens.push({ produto, quantidade, valorUnit, total: quantidade * valorUnit });
+    });
+
+    const pedido = {
+        seuNome: document.getElementById("seuNome").value,
+        nomeCliente: document.getElementById("nomeCliente").value,
+        telefoneCliente: document.getElementById("telefoneCliente").value,
+        itens,
+        dataPedido: dataPedidoEl.value,
+        dataEntrega: dataEntregaEl.value,
+        valorTotal: itens.reduce((acc, item) => acc + item.total, 0),
+        valorRecebido: parseFloat(valorRecebidoEl.value) || 0, // ✅ salva o valor recebido
+        status: "Aguardando Retorno"
+    };
+
+    let pedidos = JSON.parse(localStorage.getItem("pedidos")) || [];
+    pedidos.push(pedido);
+    localStorage.setItem("pedidos", JSON.stringify(pedidos));
+
+    alert("✅ Pedido cadastrado com sucesso!");
+    this.reset();
+    dataPedidoEl.value = formatDateForDisplay(hoje);
+    dataEntregaEl.value = formatDateForInput(entrega);
+        document.getElementById("itensContainer").innerHTML = "";
+        document.getElementById("itensContainer").appendChild(criarItem());
+        atualizarValorTotal();
+    });
 </script>
 
 </body>
