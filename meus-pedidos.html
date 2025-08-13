@@ -104,6 +104,7 @@ async function carregarPedidos() {
 
         lista.innerHTML = ""; // limpa mensagem de carregamento
 
+        // já que a API retorna do mais antigo para o mais recente, não precisa inverter
         pedidos.forEach(pedido => {
             const card = document.createElement("div");
             card.classList.add("pedido-card");
@@ -120,8 +121,9 @@ async function carregarPedidos() {
             if (Array.isArray(pedido.itens) && pedido.itens.length > 0) {
                 pedido.itens.forEach(item => {
                     const valorUnit = Number(item.valorUnit || 0);
-                    const totalItem = Number(item.total || valorUnit * (item.quantidade || 0));
-                    produtosHTML += `<li>${item.produto || "-"} - ${item.quantidade || 0} un. (R$ ${valorUnit.toFixed(2)}) - Total: R$ ${totalItem.toFixed(2)}</li>`;
+                    const quantidade = Number(item.quantidade || 0);
+                    const totalItem = Number(item.total || valorUnit * quantidade);
+                    produtosHTML += `<li>${item.produto || "-"} - ${quantidade} un. (R$ ${valorUnit.toFixed(2)}) - Total: R$ ${totalItem.toFixed(2)}</li>`;
                 });
             } else {
                 produtosHTML += "<li>Sem produtos cadastrados</li>";
