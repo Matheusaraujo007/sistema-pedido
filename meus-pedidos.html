@@ -83,7 +83,7 @@
 // Inicialização do Supabase
 const supabaseUrl = "https://jeddjulucawhwxtocnqy.supabase.co";
 const supabaseKey = "sb_publishable_Zjzfd9wd3YJB4m4WMDgpLA_g7lXEk0f";
-
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 const lista = document.getElementById("listaPedidos");
 
