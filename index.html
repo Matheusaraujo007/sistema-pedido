@@ -17,6 +17,7 @@
         --gray: #333;
         --border-color: #ccc;
     }
+
     body {
         font-family: "Segoe UI", Arial, sans-serif;
         background: var(--light-bg);
@@ -27,6 +28,7 @@
         margin: 0;
         padding: 15px;
     }
+
     .container {
         background: var(--white);
         width: 100%;
@@ -35,20 +37,28 @@
         border-radius: 12px;
         box-shadow: 0px 4px 20px rgba(0,0,0,0.1);
     }
+
     h1 {
         text-align: center;
         margin-bottom: 20px;
         font-size: 24px;
         color: var(--primary);
     }
-    h1::before { content: "📋 "; }
-    .form-group { margin-bottom: 15px; }
+    h1::before {
+        content: "📋 ";
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
     label {
         font-weight: 600;
         display: block;
         margin-bottom: 5px;
         color: var(--gray);
     }
+
     input {
         width: 100%;
         padding: 10px 12px;
@@ -62,8 +72,15 @@
         outline: none;
         box-shadow: 0px 0px 6px rgba(47, 127, 179, 0.3);
     }
-    .dates { display: flex; gap: 10px; }
-    .dates input { flex: 1; }
+
+    .dates {
+        display: flex;
+        gap: 10px;
+    }
+    .dates input {
+        flex: 1;
+    }
+
     button {
         padding: 10px 16px;
         border: none;
@@ -73,12 +90,28 @@
         cursor: pointer;
         transition: 0.3s;
     }
-    .btn-primary { background: var(--primary); color: var(--white); }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-success { background: var(--success); color: var(--white); }
-    .btn-success:hover { background: var(--success-hover); }
-    .btn-danger { background: var(--danger); color: var(--white); }
-    .btn-danger:hover { background: var(--danger-hover); }
+    .btn-primary {
+        background: var(--primary);
+        color: var(--white);
+    }
+    .btn-primary:hover {
+        background: var(--primary-hover);
+    }
+    .btn-success {
+        background: var(--success);
+        color: var(--white);
+    }
+    .btn-success:hover {
+        background: var(--success-hover);
+    }
+    .btn-danger {
+        background: var(--danger);
+        color: var(--white);
+    }
+    .btn-danger:hover {
+        background: var(--danger-hover);
+    }
+
     .view-orders {
         display: block;
         text-align: center;
@@ -87,7 +120,10 @@
         text-decoration: none;
         font-weight: bold;
     }
-    .view-orders:hover { text-decoration: underline; }
+    .view-orders:hover {
+        text-decoration: underline;
+    }
+
     .item-block {
         border: 1px solid #ddd;
         padding: 5px;
@@ -95,6 +131,7 @@
         margin-bottom: 10px;
         background: #fafafa;
     }
+
     .total-pedido {
         font-weight: bold;
         color: var(--success);
@@ -173,6 +210,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.2/dist/supabase.min.js"></script>
 
 <script>
+const supabaseUrl = "YOUR_SUPABASE_URL";       // ← coloque sua URL do Supabase
+const supabaseKey = "YOUR_SUPABASE_ANON_KEY"; // ← coloque sua ANON KEY
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
 const hoje = new Date();
 const entrega = new Date();
 entrega.setDate(hoje.getDate() + 10);
@@ -238,13 +279,10 @@ document.querySelectorAll(".btn-excluir").forEach(btn => {
 });
 
 document.addEventListener("input", function(e) {
-    if (e.target.closest("#itensContainer")) atualizarValorTotal();
+    if (e.target.closest("#itensContainer")) {
+        atualizarValorTotal();
+    }
 });
-
-// Supabase config
-const supabaseUrl = "https://jeddjulucawhwxtocnqy.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGRqdWx1Y2F3aHd4dG9jbnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwOTA4MDIsImV4cCI6MjA3MDY2NjgwMn0.AmHHBMpM4Fy0D021wdgWAEEn50rlYqVJa491qJ7mBbc";
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 document.getElementById("pedidoForm").addEventListener("submit", async function(e) {
     e.preventDefault();
@@ -258,7 +296,7 @@ document.getElementById("pedidoForm").addEventListener("submit", async function(
     });
 
     const pedido = {
-        vendedor: document.getElementById("vendedor").value,
+        seuNome: document.getElementById("seuNome").value,
         nomeCliente: document.getElementById("nomeCliente").value,
         telefoneCliente: document.getElementById("telefoneCliente").value,
         itens,
@@ -269,37 +307,27 @@ document.getElementById("pedidoForm").addEventListener("submit", async function(
         status: "Aguardando Retorno"
     };
 
-    // LocalStorage
-    let pedidosLocal = JSON.parse(localStorage.getItem("pedidos")) || [];
-    pedidosLocal.push(pedido);
-    localStorage.setItem("pedidos", JSON.stringify(pedidosLocal));
+    // Salva no LocalStorage
+    let pedidos = JSON.parse(localStorage.getItem("pedidos")) || [];
+    pedidos.push(pedido);
+    localStorage.setItem("pedidos", JSON.stringify(pedidos));
 
-    // Envio para Supabase
-    const { data, error } = await supabase
-        .from('pedidos')
-        .insert([{
-            vendedor: pedido.vendedor,
-            nome_cliente: pedido.nomeCliente,
-            telefone_cliente: pedido.telefoneCliente,
-            itens: JSON.stringify(pedido.itens),
-            data_pedido: pedido.dataPedido,
-            data_entrega: pedido.dataEntrega,
-            valor_total: pedido.valorTotal,
-            valor_recebido: pedido.valorRecebido,
-            status: pedido.status
-        }]);
-
+    // Salva no Supabase
+    const { data, error } = await supabase.from("pedidos").insert([pedido]);
     if (error) {
-        alert("❌ Erro ao enviar para o Supabase: " + error.message);
+        console.error("Erro ao salvar no Supabase:", error.message);
+        alert("❌ Erro ao salvar no banco de dados!");
     } else {
         alert("✅ Pedido cadastrado com sucesso!");
-        this.reset();
-        dataPedidoEl.value = formatDateForDisplay(hoje);
-        dataEntregaEl.value = formatDateForInput(entrega);
-        document.getElementById("itensContainer").innerHTML = "";
-        document.getElementById("itensContainer").appendChild(criarItem());
-        atualizarValorTotal();
     }
+
+    // Reset form
+    this.reset();
+    dataPedidoEl.value = formatDateForDisplay(hoje);
+    dataEntregaEl.value = formatDateForInput(entrega);
+    document.getElementById("itensContainer").innerHTML = "";
+    document.getElementById("itensContainer").appendChild(criarItem());
+    atualizarValorTotal();
 });
 </script>
 
