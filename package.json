@@ -1,0 +1,11 @@
+{
+  "name": "sistema-pedido",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.25.0"
+  }
+}
