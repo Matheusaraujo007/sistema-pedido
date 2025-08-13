@@ -5,84 +5,84 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Cadastro de Pedido</title>
 <style>
-    :root {
-        --primary: #2f7fb3;
-        --primary-hover: #25658d;
-        --success: #28a745;
-        --success-hover: #218838;
-        --danger: #dc3545;
-        --danger-hover: #b02a37;
-        --light-bg: #f7f9fc;
-        --white: #fff;
-        --gray: #333;
-        --border-color: #ccc;
-    }
-    body {
-        font-family: "Segoe UI", Arial, sans-serif;
-        background: var(--light-bg);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        margin: 0;
-        padding: 15px;
-    }
-    .container {
-        background: var(--white);
-        width: 100%;
-        max-width: 500px;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0px 4px 20px rgba(0,0,0,0.1);
-    }
-    h1 { text-align: center; margin-bottom: 20px; font-size: 24px; color: var(--primary); }
-    h1::before { content: "📋 "; }
-    .form-group { margin-bottom: 15px; }
-    label { font-weight: 600; display: block; margin-bottom: 5px; color: var(--gray); }
-    input {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 14px;
-        transition: 0.3s;
-    }
-    input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 6px rgba(47,127,179,0.3); }
-    .dates { display: flex; gap: 10px; }
-    .dates input { flex: 1; }
-    button {
-        padding: 10px 16px;
-        border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-    .btn-primary { background: var(--primary); color: var(--white); }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-success { background: var(--success); color: var(--white); }
-    .btn-success:hover { background: var(--success-hover); }
-    .btn-danger { background: var(--danger); color: var(--white); }
-    .btn-danger:hover { background: var(--danger-hover); }
-    .view-orders { display: block; text-align: center; margin-top: 15px; color: var(--primary); text-decoration: none; font-weight: bold; }
-    .view-orders:hover { text-decoration: underline; }
-    .item-block {
-        border: 1px solid #ddd;
-        padding: 5px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        background: #fafafa;
-    }
-    .total-pedido {
-        font-weight: bold;
-        color: var(--success);
-        font-size: 18px;
-        background: #e9f7ef;
-        padding: 8px 12px;
-        border-radius: 8px;
-        text-align: center;
-    }
+:root {
+    --primary: #2f7fb3;
+    --primary-hover: #25658d;
+    --success: #28a745;
+    --success-hover: #218838;
+    --danger: #dc3545;
+    --danger-hover: #b02a37;
+    --light-bg: #f7f9fc;
+    --white: #fff;
+    --gray: #333;
+    --border-color: #ccc;
+}
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: var(--light-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 15px;
+}
+.container {
+    background: var(--white);
+    width: 100%;
+    max-width: 500px;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 20px rgba(0,0,0,0.1);
+}
+h1 { text-align: center; margin-bottom: 20px; font-size: 24px; color: var(--primary); }
+h1::before { content: "📋 "; }
+.form-group { margin-bottom: 15px; }
+label { font-weight: 600; display: block; margin-bottom: 5px; color: var(--gray); }
+input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: 0.3s;
+}
+input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 6px rgba(47,127,179,0.3); }
+.dates { display: flex; gap: 10px; }
+.dates input { flex: 1; }
+button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-primary { background: var(--primary); color: var(--white); }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-success { background: var(--success); color: var(--white); }
+.btn-success:hover { background: var(--success-hover); }
+.btn-danger { background: var(--danger); color: var(--white); }
+.btn-danger:hover { background: var(--danger-hover); }
+.view-orders { display: block; text-align: center; margin-top: 15px; color: var(--primary); text-decoration: none; font-weight: bold; }
+.view-orders:hover { text-decoration: underline; }
+.item-block {
+    border: 1px solid #ddd;
+    padding: 5px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: #fafafa;
+}
+.total-pedido {
+    font-weight: bold;
+    color: var(--success);
+    font-size: 18px;
+    background: #e9f7ef;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-align: center;
+}
 </style>
 </head>
 <body>
@@ -103,24 +103,7 @@
             <input type="tel" id="telefoneCliente" placeholder="(XX) XXXXX-XXXX" required>
         </div>
 
-        <div id="itensContainer">
-            <div class="item-block">
-                <div class="form-group">
-                    <label>Produto</label>
-                    <input type="text" placeholder="Digite o produto" required>
-                </div>
-                <div class="form-group">
-                    <label>Quantidade</label>
-                    <input type="number" placeholder="Ex: 10" required>
-                </div>
-                <div class="form-group">
-                    <label>Valor Unitário (R$)</label>
-                    <input type="number" step="0.01" placeholder="Ex: 9.90" required>
-                </div>
-                <button type="button" class="btn-danger btn-excluir">❌ Excluir</button>
-            </div>
-        </div>
-
+        <div id="itensContainer"></div>
         <button type="button" class="btn-success" id="btnAddItem">+ Adicionar Item</button>
 
         <div class="dates form-group">
@@ -148,29 +131,26 @@
     <a href="meus-pedidos.html" class="view-orders">🔍 Ver Meus Pedidos</a>
 </div>
 
-<!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.2/dist/supabase.min.js"></script>
-
 <script>
+const supabaseUrl = "https://jeddjulucawhwxtocnqy.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGRqdWx1Y2F3aHd4dG9jbnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwOTA4MDIsImV4cCI6MjA3MDY2NjgwMn0.AmHHBMpM4Fy0D021wdgWAEEn50rlYqVJa491qJ7mBbc";
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
 const hoje = new Date();
 const entrega = new Date();
 entrega.setDate(hoje.getDate() + 10);
 
 const dataPedidoEl = document.getElementById("dataPedido");
 const dataEntregaEl = document.getElementById("dataEntrega");
-const valorRecebidoEl = document.getElementById("valorRecebido");
-
-function formatDateForDisplay(date) { return date.toLocaleDateString("pt-BR"); }
-function formatDateForInput(date) { return date.toISOString().split("T")[0]; }
-
-dataPedidoEl.value = formatDateForDisplay(hoje);
-dataEntregaEl.value = formatDateForInput(entrega);
+dataPedidoEl.value = hoje.toISOString().split("T")[0];
+dataEntregaEl.value = entrega.toISOString().split("T")[0];
 
 function atualizarValorTotal() {
     let total = 0;
     document.querySelectorAll("#itensContainer .item-block").forEach(block => {
-        const quantidade = parseFloat(block.querySelector("input[placeholder^='Ex:']").value) || 0;
-        const valorUnit = parseFloat(block.querySelector("input[step]").value) || 0;
+        const quantidade = parseFloat(block.querySelector(".quantidade").value) || 0;
+        const valorUnit = parseFloat(block.querySelector(".valorUnit").value) || 0;
         total += quantidade * valorUnit;
     });
     document.getElementById("valorTotalPedido").textContent = total.toFixed(2).replace('.', ',');
@@ -186,11 +166,11 @@ function criarItem() {
         </div>
         <div class="form-group">
             <label>Quantidade</label>
-            <input type="number" placeholder="Ex: 10" required>
+            <input type="number" class="quantidade" placeholder="Ex: 10" required>
         </div>
         <div class="form-group">
             <label>Valor Unitário (R$)</label>
-            <input type="number" step="0.01" placeholder="Ex: 9.90" required>
+            <input type="number" step="0.01" class="valorUnit" placeholder="Ex: 9.90" required>
         </div>
         <button type="button" class="btn-danger btn-excluir">❌ Excluir</button>
     `;
@@ -201,18 +181,16 @@ function criarItem() {
     return item;
 }
 
+// Adiciona o primeiro item por padrão
+document.getElementById("itensContainer").appendChild(criarItem());
+
 document.getElementById("btnAddItem").addEventListener("click", () => {
     document.getElementById("itensContainer").appendChild(criarItem());
 });
 
-document.addEventListener("input", function(e) {
+document.addEventListener("input", e => {
     if (e.target.closest("#itensContainer")) atualizarValorTotal();
 });
-
-// ----- Inicializando Supabase antes de qualquer uso -----
-const supabaseUrl = "https://jeddjulucawhwxtocnqy.supabase.co";
-const supabaseKey = "yJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGRqdWx1Y2F3aHd4dG9jbnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwOTA4MDIsImV4cCI6MjA3MDY2NjgwMn0.AmHHBMpM4Fy0D021wdgWAEEn50rlYqVJa491qJ7mBbc"; // Troque pela sua chave anon do Supabase
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 document.getElementById("pedidoForm").addEventListener("submit", async function(e) {
     e.preventDefault();
@@ -220,56 +198,43 @@ document.getElementById("pedidoForm").addEventListener("submit", async function(
     const itens = [];
     document.querySelectorAll("#itensContainer .item-block").forEach(block => {
         const produto = block.querySelector("input[placeholder='Digite o produto']").value;
-        const quantidade = parseInt(block.querySelector("input[placeholder^='Ex:']").value) || 0;
-        const valorUnit = parseFloat(block.querySelector("input[step]").value) || 0;
+        const quantidade = parseFloat(block.querySelector(".quantidade").value) || 0;
+        const valorUnit = parseFloat(block.querySelector(".valorUnit").value) || 0;
         itens.push({ produto, quantidade, valorUnit, total: quantidade * valorUnit });
     });
 
     const pedido = {
         vendedor: document.getElementById("seuNome").value,
-        nomeCliente: document.getElementById("nomeCliente").value,
-        telefoneCliente: document.getElementById("telefoneCliente").value,
-        itens,
-        dataPedido: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD
-        dataEntrega: document.getElementById("dataEntrega").value,
-        valorTotal: itens.reduce((acc, item) => acc + item.total, 0),
-        valorRecebido: parseFloat(valorRecebidoEl.value) || 0,
+        nome_cliente: document.getElementById("nomeCliente").value,
+        telefone_cliente: document.getElementById("telefoneCliente").value,
+        itens: JSON.stringify(itens),
+        data_pedido: dataPedidoEl.value,
+        data_entrega: dataEntregaEl.value,
+        valor_total: itens.reduce((acc, item) => acc + item.total, 0),
+        valor_recebido: parseFloat(document.getElementById("valorRecebido").value) || 0,
         status: "Aguardando Retorno"
     };
 
-    // Salva localmente
+    // Salva localStorage
     let pedidosLocal = JSON.parse(localStorage.getItem("pedidos")) || [];
     pedidosLocal.push(pedido);
     localStorage.setItem("pedidos", JSON.stringify(pedidosLocal));
 
     // Envia para Supabase
-    const { error } = await supabase
-        .from('pedidos')
-        .insert([{
-            vendedor: pedido.vendedor,
-            nome_cliente: pedido.nomeCliente,
-            telefone_cliente: pedido.telefoneCliente,
-            itens: JSON.stringify(pedido.itens),
-            data_pedido: pedido.dataPedido,
-            data_entrega: pedido.dataEntrega,
-            valor_total: pedido.valorTotal,
-            valor_recebido: pedido.valorRecebido,
-            status: pedido.status
-        }]);
+    const { error } = await supabase.from('pedidos').insert([pedido]);
 
     if (error) {
         alert("❌ Erro ao enviar para o Supabase: " + error.message);
     } else {
         alert("✅ Pedido cadastrado com sucesso!");
         this.reset();
-        dataPedidoEl.value = formatDateForDisplay(hoje);
-        dataEntregaEl.value = formatDateForInput(entrega);
+        dataPedidoEl.value = hoje.toISOString().split("T")[0];
+        dataEntregaEl.value = entrega.toISOString().split("T")[0];
         document.getElementById("itensContainer").innerHTML = "";
         document.getElementById("itensContainer").appendChild(criarItem());
         atualizarValorTotal();
     }
 });
 </script>
-
 </body>
 </html>
