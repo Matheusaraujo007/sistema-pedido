@@ -201,6 +201,14 @@ function criarItem() {
     return item;
 }
 
+document.getElementById("btnAddItem").addEventListener("click", () => {
+    document.getElementById("itensContainer").appendChild(criarItem());
+});
+
+document.addEventListener("input", function(e) {
+    if (e.target.closest("#itensContainer")) atualizarValorTotal();
+});
+
 document.getElementById("pedidoForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
@@ -225,22 +233,14 @@ document.getElementById("pedidoForm").addEventListener("submit", async function(
     };
 
     try {
-        const resp = await fetch('/api/salvar-pedido', {
+        const resp = await fetch('/salvar-pedido', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(pedido)
         });
-
-        // tenta parsear o JSON de resposta
-        let data;
-        try {
-            data = await resp.json();
-        } catch {
-            throw new Error(`Erro no servidor: ${await resp.text()}`);
-        }
-
-        if (resp.ok && data.sucesso) {
-            alert("✅ Pedido cadastrado com sucesso!");
+        const data = await resp.json();
+        if (data.sucesso) {
+            alert("✅ Pedido cadastrado com sucesso no Redis!");
             this.reset();
             dataPedidoEl.value = formatDateForDisplay(hoje);
             dataEntregaEl.value = formatDateForInput(entrega);
@@ -248,12 +248,10 @@ document.getElementById("pedidoForm").addEventListener("submit", async function(
             document.getElementById("itensContainer").appendChild(criarItem());
             atualizarValorTotal();
         } else {
-            alert("❌ Erro ao salvar pedido: " + (data.erro || JSON.stringify(data)));
+            alert("❌ Erro ao salvar pedido: " + data.erro);
         }
-
     } catch (err) {
         alert("❌ Erro ao salvar pedido: " + err.message);
-        console.error("Detalhes do erro:", err);
     }
 });
 </script>
