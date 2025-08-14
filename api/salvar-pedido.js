@@ -1,44 +1,56 @@
-import { Redis } from '@upstash/redis';
+import { MongoClient } from "mongodb";
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
+const uri = process.env.MONGODB_URI; // Defina no Vercel
+const dbName = process.env.MONGODB_DB || "meuBanco"; // Nome do banco
+
+let cachedClient = null;
+let cachedDb = null;
+
+// Função para conectar ao MongoDB apenas uma vez (evita múltiplas conexões no Vercel)
+async function connectToDatabase() {
+  if (cachedClient && cachedDb) {
+    return { client: cachedClient, db: cachedDb };
+  }
+
+  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  await client.connect();
+  
+  const db = client.db(dbName);
+
+  cachedClient = client;
+  cachedDb = db;
+
+  return { client, db };
+}
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ erro: 'Método não permitido' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Método não permitido' });
+  }
 
   try {
-    const {
-      vendedor,
-      nomeCliente,
-      telefoneCliente,
-      itens,
-      dataPedido,
-      dataEntrega,
-      valorTotal,
-      valorRecebido,
-      status
-    } = req.body;
+    const { cliente, produto, quantidade } = req.body;
 
-    const pedido = {
-      vendedor: vendedor || 'Não informado',
-      nomeCliente: nomeCliente || 'Não informado',
-      telefoneCliente: telefoneCliente || 'Não informado',
-      itens: itens || [],
-      dataPedido: dataPedido || '',
-      dataEntrega: dataEntrega || '',
-      valorTotal: parseFloat(valorTotal) || 0,
-      valorRecebido: parseFloat(valorRecebido) || 0,
-      status: status || 'Aguardando Retorno'
-    };
+    if (!cliente || !produto || !quantidade) {
+      return res.status(400).json({ error: 'Dados incompletos' });
+    }
 
-    // Salva como string JSON no Redis
-    await redis.lpush('pedidos', JSON.stringify(pedido));
+    // Conectar ao MongoDB
+    const { db } = await connectToDatabase();
+    const pedidosCollection = db.collection("pedidos");
 
-    res.status(200).json({ sucesso: true });
+    // Inserir pedido
+    await pedidosCollection.insertOne({
+      cliente,
+      produto,
+      quantidade,
+      data: new Date()
+    });
+
+    return res.status(200).json({ message: 'Pedido salvo com sucesso' });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ erro: err.message });
+    console.error('Erro ao salvar pedido:', err);
+    return res.status(500).json({ error: 'Erro no servidor', details: err.message });
   }
 }
