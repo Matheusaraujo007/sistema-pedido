@@ -1,68 +1,20 @@
 import { MongoClient } from "mongodb";
 
-const uri = process.env.MONGODB_URI; // Defina no Vercel
-const client = new MongoClient(uri);
-
-let db;
-
-async function conectarMongo() {
-  if (!db) {
-    await client.connect();
-    db = client.db(); // usa o banco definido no URI
-  }
-  return db;
-}
+const client = new MongoClient(process.env.MONGODB_URI);
 
 export default async function handler(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ erro: 'Método não permitido' });
+  }
+
   try {
-    if (req.method === 'POST') {
-      const {
-        vendedor,
-        nomeCliente,
-        telefoneCliente,
-        itens,
-        dataPedido,
-        dataEntrega,
-        valorTotal,
-        valorRecebido,
-        status
-      } = req.body;
+    await client.connect();
+    const db = client.db();
+    const pedidos = await db.collection('pedidos').find().toArray();
 
-      if (!vendedor || !nomeCliente || !telefoneCliente || !itens || !dataPedido) {
-        return res.status(400).json({ erro: "Dados incompletos" });
-      }
-
-      const pedido = {
-        vendedor,
-        nomeCliente,
-        telefoneCliente,
-        itens,
-        dataPedido,
-        dataEntrega,
-        valorTotal,
-        valorRecebido,
-        status
-      };
-
-      const database = await conectarMongo();
-      const collection = database.collection("pedidos");
-
-      const result = await collection.insertOne(pedido);
-
-      return res.status(200).json({ sucesso: true, id: result.insertedId });
-    }
-
-    // GET - Listar pedidos
-    if (req.method === 'GET') {
-      const database = await conectarMongo();
-      const pedidos = await database.collection("pedidos").find().toArray();
-      return res.status(200).json(pedidos);
-    }
-
-    res.status(405).json({ erro: 'Método não permitido' });
-
+    return res.status(200).json(pedidos);
   } catch (err) {
-    console.error("Erro ao salvar pedido:", err);
-    res.status(500).json({ erro: err.message });
+    console.error('Erro ao buscar pedidos:', err);
+    return res.status(500).json({ erro: err.message });
   }
 }

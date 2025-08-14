@@ -1,35 +1,20 @@
-import { Redis } from '@upstash/redis';
+import { MongoClient } from "mongodb";
 
-if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-  throw new Error("Variáveis de ambiente UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN não configuradas");
-}
-
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
+const client = new MongoClient(process.env.MONGODB_URI);
 
 export default async function handler(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ erro: 'Método não permitido' });
+  }
+
   try {
-    console.log("Request recebida:", req.method);
+    await client.connect();
+    const db = client.db();
+    const pedidos = await db.collection('pedidos').find().toArray();
 
-    if (req.method === 'GET') {
-      console.log("Buscando pedidos no Redis...");
-      const pedidosRaw = await redis.lrange('pedidos', 0, -1);
-      console.log("Pedidos crus:", pedidosRaw);
-
-      const pedidos = pedidosRaw
-        .map(p => { try { return JSON.parse(p); } catch { return null; } })
-        .filter(Boolean);
-
-      console.log(`Pedidos processados: ${pedidos.length}`);
-      return res.status(200).json(pedidos);
-    }
-
-    res.status(405).json({ erro: 'Método não permitido' });
-
+    return res.status(200).json(pedidos);
   } catch (err) {
-    console.error("Erro na API:", err);
-    res.status(500).json({ erro: err.message });
+    console.error('Erro ao buscar pedidos:', err);
+    return res.status(500).json({ erro: err.message });
   }
 }
