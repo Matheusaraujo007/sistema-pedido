@@ -1,62 +1,71 @@
-const express = require('express');
-const { createClient } = require('redis');
-const path = require('path');
+// server.js
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { MongoClient, ObjectId } from 'mongodb';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+dotenv.config();
+
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 8080;
 
-// Conexão Redis (substitua pelos dados do seu Redis, ex: Upstash)
-const client = createClient({
-  url: 'redis-cli --tls -u redis://default:AYYoAAIncDFjYzc4MDdjNTJmZGY0N2YyYjg1MzI2YmQ2YTUwZTZhNHAxMzQzNDQ@joint-sunbird-34344.upstash.io:6379'
-});
-
-client.on('error', (err) => console.log('Redis Client Error', err));
-
-(async () => {
-  await client.connect();
-  console.log('Redis conectado!');
-})();
-
-// Para receber JSON do front-end
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-// Servir o HTML
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+// MongoDB
+const client = new MongoClient(process.env.MONGO_URI);
+let db;
 
-// Endpoint para salvar pedidos
-app.post('/salvar-pedido', async (req, res) => {
+async function conectarMongo() {
+  try {
+    await client.connect();
+    db = client.db(); // usa o nome do DB da URI
+    console.log("Conectado ao MongoDB Atlas!");
+  } catch (err) {
+    console.error("Erro ao conectar no MongoDB:", err);
+  }
+}
+await conectarMongo();
+
+// Serve arquivos estáticos
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(__dirname));
+
+// Rotas
+
+// POST - Criar pedido
+app.post('/api/pedidos', async (req, res) => {
   try {
     const pedido = req.body;
-
-    // Gerar um ID único para cada pedido
-    const id = Date.now();
-
-    // Salvar no Redis como JSON
-    await client.set(`pedido:${id}`, JSON.stringify(pedido));
-
-    res.json({ sucesso: true, id });
+    const result = await db.collection('pedidos').insertOne(pedido);
+    res.status(200).json({ sucesso: true, id: result.insertedId });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ sucesso: false, erro: err.message });
-  }
-});
-
-// Endpoint para listar pedidos
-app.get('/pedidos', async (req, res) => {
-  try {
-    const chaves = await client.keys('pedido:*');
-    const pedidos = [];
-    for (const chave of chaves) {
-      const pedido = await client.get(chave);
-      pedidos.push(JSON.parse(pedido));
-    }
-    res.json(pedidos);
-  } catch (err) {
+    console.error("Erro ao criar pedido:", err);
     res.status(500).json({ erro: err.message });
   }
 });
 
-app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
+// GET - Listar pedidos
+app.get('/api/pedidos', async (req, res) => {
+  try {
+    const pedidos = await db.collection('pedidos').find().toArray();
+    res.status(200).json(pedidos);
+  } catch (err) {
+    console.error("Erro ao buscar pedidos:", err);
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// Teste de servidor
+app.get('/api/test', (req, res) => {
+  res.json({ status: "Servidor rodando e MongoDB conectado" });
+});
+
+// Inicia servidor
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });

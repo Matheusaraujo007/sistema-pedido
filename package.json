@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "vercel dev"
+    "start": "node server.js"
   },
   "dependencies": {
-    "@upstash/redis": "^1.25.0"
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.18.2",
+    "mongodb": "^5.7.0"
   }
 }
