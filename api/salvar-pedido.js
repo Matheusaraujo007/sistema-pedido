@@ -1,56 +1,67 @@
+// pages/api/salvar-pedido.js (para Vercel)
 import { MongoClient } from "mongodb";
 
 const uri = process.env.MONGODB_URI; // Defina no Vercel
-const dbName = process.env.MONGODB_DB || "meuBanco"; // Nome do banco
+const client = new MongoClient(uri);
 
-let cachedClient = null;
-let cachedDb = null;
-
-// Função para conectar ao MongoDB apenas uma vez (evita múltiplas conexões no Vercel)
-async function connectToDatabase() {
-  if (cachedClient && cachedDb) {
-    return { client: cachedClient, db: cachedDb };
-  }
-
-  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-  await client.connect();
-  
-  const db = client.db(dbName);
-
-  cachedClient = client;
-  cachedDb = db;
-
-  return { client, db };
+async function conectarMongo() {
+  if (!client.isConnected()) await client.connect();
+  return client.db(); // usa o database definido na URI
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método não permitido' });
-  }
-
   try {
-    const { cliente, produto, quantidade } = req.body;
+    if (req.method === "POST") {
+      // Recebe dados do body
+      const {
+        vendedor,
+        nomeCliente,
+        telefoneCliente,
+        itens,
+        dataPedido,
+        dataEntrega,
+        valorTotal,
+        valorRecebido,
+        status
+      } = req.body;
 
-    if (!cliente || !produto || !quantidade) {
-      return res.status(400).json({ error: 'Dados incompletos' });
+      // Validação mínima
+      if (!nomeCliente || !itens || !Array.isArray(itens) || itens.length === 0) {
+        return res.status(400).json({ erro: "Campos obrigatórios ausentes ou inválidos" });
+      }
+
+      // Monta objeto do pedido
+      const pedido = {
+        vendedor: vendedor || "Não informado",
+        nomeCliente,
+        telefoneCliente: telefoneCliente || "Não informado",
+        itens,
+        dataPedido: dataPedido || new Date().toISOString().split("T")[0],
+        dataEntrega: dataEntrega || "",
+        valorTotal: parseFloat(valorTotal) || 0,
+        valorRecebido: parseFloat(valorRecebido) || 0,
+        status: status || "Aguardando Retorno",
+        criadoEm: new Date()
+      };
+
+      // Conecta ao MongoDB e salva
+      const db = await conectarMongo();
+      const result = await db.collection("pedidos").insertOne(pedido);
+
+      return res.status(200).json({ sucesso: true, id: result.insertedId });
     }
 
-    // Conectar ao MongoDB
-    const { db } = await connectToDatabase();
-    const pedidosCollection = db.collection("pedidos");
+    // GET - listar pedidos
+    if (req.method === "GET") {
+      const db = await conectarMongo();
+      const pedidos = await db.collection("pedidos").find().toArray();
+      return res.status(200).json(pedidos);
+    }
 
-    // Inserir pedido
-    await pedidosCollection.insertOne({
-      cliente,
-      produto,
-      quantidade,
-      data: new Date()
-    });
-
-    return res.status(200).json({ message: 'Pedido salvo com sucesso' });
-
+    // Métodos não permitidos
+    return res.status(405).json({ erro: "Método não permitido" });
   } catch (err) {
-    console.error('Erro ao salvar pedido:', err);
-    return res.status(500).json({ error: 'Erro no servidor', details: err.message });
+    console.error("❌ Erro ao salvar ou buscar pedido:", err);
+    return res.status(500).json({ erro: "Erro no servidor", detalhes: err.message });
   }
 }
