@@ -233,7 +233,7 @@ document.getElementById("pedidoForm").addEventListener("submit", async function(
     };
 
     try {
-        const resp = await fetch('/salvar-pedido', {
+        const resp = await fetch('/api/salvar-pedido', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(pedido)
